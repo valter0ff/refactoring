@@ -1,12 +1,13 @@
-require 'yaml'
-require 'pry'
-
 class MainConsole
-  attr_accessor :login, :name, :card, :password, :file_path
+  include DatabaseLoader
+  DATA_FILE = File.expand_path('../db/accounts.yml', __dir__)
+  DIR_NAME = 'db'.freeze
+
+  attr_accessor :login, :name, :card, :password, :file_path, :accounts
 
   def initialize
     @errors = []
-    @file_path = 'accounts.yml'
+    @accounts = load_from_file(DATA_FILE) || []
   end
 
   def console
@@ -42,9 +43,9 @@ class MainConsole
     end
 
     @card = []
-    new_accounts = accounts << self
+    accounts << self
     @current_account = self
-    File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
+    store_to_file(accounts, DATA_FILE, DIR_NAME)
     main_menu
   end
 
@@ -160,7 +161,7 @@ class MainConsole
             new_accounts.push(ac)
           end
         end
-        File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
+        store_to_file(new_accounts, DATA_FILE, DIR_NAME)
         break
       else
         puts "Wrong card type. Try again!\n"
@@ -192,7 +193,7 @@ class MainConsole
                 new_accounts.push(ac)
               end
             end
-            File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
+            store_to_file(new_accounts, DATA_FILE, DIR_NAME)
             break
           else
             return
@@ -300,7 +301,7 @@ class MainConsole
                     new_accounts.push(ac)
                   end
                 end
-                File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
+                store_to_file(new_accounts, DATA_FILE, DIR_NAME)
                 puts "Money #{a2&.to_i.to_i} was put on #{current_card[:number]}. Balance: #{current_card[:balance]}. Tax: #{put_tax(current_card[:type], current_card[:balance], current_card[:number], a2&.to_i.to_i)}"
                 return
               end
@@ -386,7 +387,7 @@ class MainConsole
               new_accounts.push(recipient)
             end
           end
-          File.open('accounts.yml', 'w') { |f| f.write new_accounts.to_yaml } #Storing
+          store_to_file(new_accounts, DATA_FILE, DIR_NAME)
           puts "Money #{a3&.to_i.to_i}$ was put on #{sender_card[:number]}. Balance: #{recipient_balance}. Tax: #{put_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
           puts "Money #{a3&.to_i.to_i}$ was put on #{a2}. Balance: #{sender_balance}. Tax: #{sender_tax(sender_card[:type], sender_card[:balance], sender_card[:number], a3&.to_i.to_i)}$\n"
           break
@@ -401,14 +402,8 @@ class MainConsole
     puts 'Are you sure you want to destroy account?[y/n]'
     a = gets.chomp
     if a == 'y'
-      new_accounts = []
-      accounts.each do |ac|
-        if ac.login == @current_account.login
-        else
-          new_accounts.push(ac)
-        end
-      end
-      File.open(@file_path, 'w') { |f| f.write new_accounts.to_yaml } #Storing
+      accounts.delete_if { |acc| acc.login == @current_account.login }
+      store_to_file(accounts, DATA_FILE, DIR_NAME)
     end
   end
 
@@ -465,14 +460,6 @@ class MainConsole
       @age = @age.to_i
     else
       @errors.push('Your Age must be greeter then 23 and lower then 90')
-    end
-  end
-
-  def accounts
-    if File.exists?('accounts.yml')
-      YAML.load_file('accounts.yml')
-    else
-      []
     end
   end
 

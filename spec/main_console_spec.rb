@@ -96,6 +96,8 @@ RSpec.describe MainConsole do
 
   let(:current_subject) { described_class.new }
 
+  before { stub_const('MainConsole::DATA_FILE', OVERRIDABLE_FILENAME) }
+
   describe '#console' do
     context 'when correct method calling' do
       after do
@@ -413,7 +415,7 @@ RSpec.describe MainConsole do
     context 'when deleting' do
       it 'deletes account if user inputs is y' do
         expect(current_subject).to receive_message_chain(:gets, :chomp) { success_input }
-        expect(current_subject).to receive(:accounts) { accounts }
+        current_subject.instance_variable_set(:@accounts, accounts)
         current_subject.instance_variable_set(:@file_path, OVERRIDABLE_FILENAME)
         current_subject.instance_variable_set(:@current_account, instance_double('Account', login: correct_login))
 
