@@ -1,3 +1,3 @@
-require_relative 'account'
+require './autoload'
 
 Account.new.console
