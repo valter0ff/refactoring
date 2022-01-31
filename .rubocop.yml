@@ -7,7 +7,7 @@ AllCops:
     - 'Gemfile'
     - 'spec/spec_helper.rb'
     - 'vendor/bundle/**/*'
-    - 'account.rb'
+    - 'main_console.rb'
     - 'spec/main_console_spec.rb'
 
 RSpec/MessageChain:

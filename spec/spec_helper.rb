@@ -5,7 +5,7 @@ SimpleCov.start do
   add_filter(%r{\/spec\/})
 end
 
-require_relative '../account'
+require './autoload.rb'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|

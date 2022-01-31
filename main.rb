@@ -1,3 +1,3 @@
 require './autoload'
 
-Account.new.console
+MainConsole.new.console
