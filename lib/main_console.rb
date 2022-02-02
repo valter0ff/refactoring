@@ -1,7 +1,10 @@
 class MainConsole
   include DatabaseLoader
+
   DATA_FILE = File.expand_path('../db/accounts.yml', __dir__)
   DIR_NAME = 'db'.freeze
+  CARD_COMMANDS = I18n.t('commands.card').values
+  MONEY_COMMANDS = I18n.t('commands.money').values
 
   attr_accessor :current_account
 
@@ -37,123 +40,30 @@ class MainConsole
 
   def main_menu
     loop do
-      puts "\nWelcome, #{@current_account.name}"
-      puts 'If you want to:'
-      puts '- show all cards - press SC'
-      puts '- create card - press CC'
-      puts '- destroy card - press DC'
-      puts '- put money on card - press PM'
-      puts '- withdraw money on card - press WM'
-      puts '- send money to another card  - press SM'
-      puts '- destroy account - press `DA`'
-      puts '- exit from account - press `exit`'
-
+      show_commands
       command = gets.chomp
-
-      if command == 'SC' || command == 'CC' || command == 'DC' || command == 'PM' || command == 'WM' || command == 'SM' || command == 'DA' || command == 'exit'
-        if command == 'SC'
-          show_cards
-        elsif command == 'CC'
-          create_card
-        elsif command == 'DC'
-          destroy_card
-        elsif command == 'PM'
-          put_money
-        elsif command == 'WM'
-          withdraw_money
-        elsif command == 'SM'
-          send_money
-        elsif command == 'DA'
-          destroy_account
-          exit
-        elsif command == 'exit'
-          exit
-          break
-        end
-      else
-        puts "Wrong command. Try again!\n"
+      exit if command == I18n.t('commands.exit')
+      case command
+      when *(CARD_COMMANDS + MONEY_COMMANDS) then operations(command)
+      when I18n.t('commands.destroy_acc') then destroy_account && exit
+      else puts I18n.t('errors.wrong_command')
       end
     end
   end
 
-  def create_card
-    loop do
-      puts 'You could create one of 3 card types'
-      puts '- Usual card. 2% tax on card INCOME. 20$ tax on SENDING money from this card. 5% tax on WITHDRAWING money. For creation this card - press `usual`'
-      puts '- Capitalist card. 10$ tax on card INCOME. 10% tax on SENDING money from this card. 4$ tax on WITHDRAWING money. For creation this card - press `capitalist`'
-      puts '- Virtual card. 1$ tax on card INCOME. 1$ tax on SENDING money from this card. 12% tax on WITHDRAWING money. For creation this card - press `virtual`'
-      puts '- For exit - press `exit`'
-
-      ct = gets.chomp
-      if ct == 'usual' || ct == 'capitalist' || ct == 'virtual'
-        if ct == 'usual'
-          card = {
-            type: 'usual',
-            number: 16.times.map{rand(10)}.join,
-            balance: 50.00
-          }
-        elsif ct == 'capitalist'
-          card = {
-            type: 'capitalist',
-            number: 16.times.map{rand(10)}.join,
-            balance: 100.00
-          }
-        elsif ct == 'virtual'
-          card = {
-            type: 'virtual',
-            number: 16.times.map{rand(10)}.join,
-            balance: 150.00
-          }
-        end
-        @current_account.cards << card
-        updated_accounts = accounts.collect { |acc| @current_account if acc.login == @current_account.login }
-        store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
-        break
-      else
-        puts "Wrong card type. Try again!\n"
-      end
+  def operations(command)
+    case command
+    when *CARD_COMMANDS then CardOperations.call(@current_account, command)
+    when *MONEY_COMMANDS then money_operations(command)
     end
+    save_database
   end
 
-  def destroy_card
-    loop do
-      if @current_account.cards.any?
-        puts 'If you want to delete:'
-
-        @current_account.cards.each_with_index do |c, i|
-          puts "- #{c[:number]}, #{c[:type]}, press #{i + 1}"
-        end
-        puts "press `exit` to exit\n"
-        answer = gets.chomp
-        break if answer == 'exit'
-        if answer&.to_i.to_i <= @current_account.cards.length && answer&.to_i.to_i > 0
-          puts "Are you sure you want to delete #{@current_account.cards[answer&.to_i.to_i - 1][:number]}?[y/n]"
-          a2 = gets.chomp
-          if a2 == 'y'
-            @current_account.cards.delete_at(answer&.to_i.to_i - 1)
-            updated_accounts = accounts.collect { |acc| @current_account if acc.login == @current_account.login }
-            store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
-            break
-          else
-            return
-          end
-        else
-          puts "You entered wrong number!\n"
-        end
-      else
-        puts "There is no active cards!\n"
-        break
-      end
-    end
-  end
-
-  def show_cards
-    if @current_account.cards.any?
-      @current_account.cards.each do |c|
-        puts "- #{c[:number]}, #{c[:type]}"
-      end
-    else
-      puts "There is no active cards!\n"
+  def money_operations(command)
+    case command
+    when I18n.t('commands.money.put') then put_money
+    when I18n.t('commands.money.withdraw') then withdraw_money
+    when I18n.t('commands.money.send') then send_money
     end
   end
 
@@ -178,8 +88,7 @@ class MainConsole
               if money_left > 0
                 current_card[:balance] = money_left
                 @current_account.cards[answer&.to_i.to_i - 1] = current_card
-                updated_accounts = accounts.collect { |acc| @current_account if acc.login == @current_account.login }
-                store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
+                save_database
                 puts "Money #{amount&.to_i.to_i} withdrawed from #{current_card[:number]}$. Money left: #{current_card[:balance]}$. Tax: #{withdraw_tax(current_card[:type], current_card[:balance], current_card[:number], amount&.to_i.to_i)}$"
                 return
               else
@@ -225,8 +134,7 @@ class MainConsole
                 new_money_amount = current_card[:balance] + amount&.to_i.to_i - put_tax(current_card[:type], current_card[:balance], current_card[:number], amount&.to_i.to_i)
                 current_card[:balance] = new_money_amount
                 @current_account.cards[answer&.to_i.to_i - 1] = current_card
-                updated_accounts = accounts.collect { |acc| @current_account if acc.login == @current_account.login }
-                store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
+                save_database
                 puts "Money #{amount&.to_i.to_i} was put on #{current_card[:number]}. Balance: #{current_card[:balance]}. Tax: #{put_tax(current_card[:type], current_card[:balance], current_card[:number], amount&.to_i.to_i)}"
                 return
               end
@@ -324,12 +232,11 @@ class MainConsole
   end
 
   def destroy_account
-    puts 'Are you sure you want to destroy account?[y/n]'
-    a = gets.chomp
-    if a == 'y'
-      updated_accounts = accounts.delete_if { |acc| acc.login == @current_account.login }
-      store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
-    end
+    puts I18n.t('common.destroy_account')
+    return unless gets.chomp == I18n.t('commands.positive')
+
+    updated_accounts = accounts.delete_if { |acc| acc.login == @current_account.login }
+    store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
   end
 
   private
@@ -347,40 +254,17 @@ class MainConsole
     end
   end
 
-  def withdraw_tax(type, balance, number, amount)
-    if type == 'usual'
-      return amount * 0.05
-    elsif type == 'capitalist'
-      return amount * 0.04
-    elsif type == 'virtual'
-      return amount * 0.88
-    end
-    0
-  end
-
-  def put_tax(type, balance, number, amount)
-    if type == 'usual'
-      return amount * 0.02
-    elsif type == 'capitalist'
-      return 10
-    elsif type == 'virtual'
-      return 1
-    end
-    0
-  end
-
-  def sender_tax(type, balance, number, amount)
-    if type == 'usual'
-      return 20
-    elsif type == 'capitalist'
-      return amount * 0.1
-    elsif type == 'virtual'
-      return 1
-    end
-    0
-  end
-
   def accounts
     load_from_file(DATA_FILE) || []
+  end
+
+  def save_database
+    updated_accounts = accounts.collect { |acc| @current_account if acc.login == @current_account.login }
+    store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
+  end
+
+  def show_commands
+    puts I18n.t('common.welcome', name: @current_account.name)
+    puts I18n.t(:main_operations)
   end
 end
