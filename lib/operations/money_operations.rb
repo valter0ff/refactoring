@@ -1,4 +1,8 @@
 class MoneyOperations
+  def self.call(...)
+    new(...).call
+  end
+
   def initialize(account)
     @account = account
   end
