@@ -90,10 +90,10 @@ en:
 
   money:
     put_on_card: "Money %{amount} was put on %{card}. "
-    withdrawed: "Money %{amount} withdrawed from %{card}. "
+    withdrawed: "Money %{amount} was withdrawed from %{card}. "
     balance: "Balance: %{balance}. "
     money_left: "Money left: %{balance}. "
-    tax: "Tax: %{tax}."
+    tax: "Tax: %{tax}"
 
   commands:
     create_acc: create
