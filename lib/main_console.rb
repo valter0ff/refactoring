@@ -8,7 +8,7 @@ class MainConsole
                      I18n.t('commands.money.withdraw') => WithdrawMoney,
                      I18n.t('commands.money.send') => SendMoney }.freeze
 
-  attr_accessor :current_account
+  attr_reader :current_account
 
   def console
     puts I18n.t(:hello)
