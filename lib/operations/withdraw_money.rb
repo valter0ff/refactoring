@@ -1,9 +1,8 @@
 class WithdrawMoney < MoneyOperations
-  private
+  CHOOSE_CARD = I18n.t('common.choose_card_withdrawing').freeze
+  INPUT_AMOUNT = I18n.t('common.withdraw_amount').freeze
 
-  def choose_card_message
-    puts I18n.t('common.choose_card_withdrawing')
-  end
+  private
 
   def check_ability_transaction(card, amount)
     low_balance?(card, amount) ? puts(I18n.t('errors.not_enough_money')) : true
@@ -15,10 +14,6 @@ class WithdrawMoney < MoneyOperations
 
   def change_balance(card, amount)
     card.balance -= (amount + card.withdraw_tax(amount))
-  end
-
-  def input_amount_message
-    puts I18n.t('common.withdraw_amount')
   end
 
   def complete_msg(card, amount)

@@ -9,8 +9,8 @@ class MoneyOperations
 
   def call
     cards_present_wrapper do
-      card = select_card
-      return if card.nil?
+      card = setup_card
+      return unless card
 
       make_transaction(card)
     end
@@ -24,14 +24,10 @@ class MoneyOperations
     yield
   end
 
-  def select_card
-    card_list
-    setup_card
-  end
-
   def setup_card
+    card_list
     answer = check_exit
-    return if answer.nil?
+    return unless answer
 
     return unless choice_card_correct(answer)
 
@@ -59,10 +55,10 @@ class MoneyOperations
 
   def make_transaction(card)
     amount = gets_amount
-    return if amount.nil?
+    return unless amount
 
     ability = check_ability_transaction(card, amount)
-    return if ability.nil?
+    return unless ability
 
     change_balance(card, amount)
     complete_msg(card, amount)
@@ -77,7 +73,7 @@ class MoneyOperations
   end
 
   def choose_card_message
-    raise NotImplementedError
+    puts self.class::CHOOSE_CARD
   end
 
   def check_ability_transaction(card, amount)
@@ -89,7 +85,7 @@ class MoneyOperations
   end
 
   def input_amount_message
-    raise NotImplementedError
+    puts self.class::INPUT_AMOUNT
   end
 
   def complete_msg(card, amount)

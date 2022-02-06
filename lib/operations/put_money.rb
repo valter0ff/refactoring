@@ -1,9 +1,8 @@
 class PutMoney < MoneyOperations
-  private
+  CHOOSE_CARD = I18n.t('common.choose_card').freeze
+  INPUT_AMOUNT = I18n.t('common.input_amount').freeze
 
-  def choose_card_message
-    puts I18n.t('common.choose_card')
-  end
+  private
 
   def check_ability_transaction(card, amount)
     card.put_tax(amount) >= amount ? puts(I18n.t('errors.tax_higher')) : true
@@ -11,10 +10,6 @@ class PutMoney < MoneyOperations
 
   def change_balance(card, amount)
     card.balance += (amount - card.put_tax(amount))
-  end
-
-  def input_amount_message
-    puts I18n.t('common.input_amount')
   end
 
   def complete_msg(card, amount)
