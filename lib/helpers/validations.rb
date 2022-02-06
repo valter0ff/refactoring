@@ -1,4 +1,6 @@
 class Validations
+  extend DatabaseLoader
+
   LOGIN_MIN_LENGTH = 4
   LOGIN_MAX_LENGTH = 20
   PASS_MIN_LENGTH = 6
@@ -12,10 +14,10 @@ class Validations
     end
 
     def validate_age(input)
-      return I18n.t('validation.age.length') unless input.is_a?(Integer) && input.between?(AGE_MIN, AGE_MAX)
+      return I18n.t('validation.age.length') unless input.to_i.between?(AGE_MIN, AGE_MAX)
     end
 
-    def validate_login(input, accounts)
+    def validate_login(input)
       return I18n.t('validation.login.present') if input.empty?
       return I18n.t('validation.login.longer') if input.length < LOGIN_MIN_LENGTH
       return I18n.t('validation.login.shorter') if input.length > LOGIN_MAX_LENGTH
@@ -26,6 +28,10 @@ class Validations
       return I18n.t('validation.password.present') if input.empty?
       return I18n.t('validation.password.longer') if input.length < PASS_MIN_LENGTH
       return I18n.t('validation.password.shorter') if input.length > PASS_MAX_LENGTH
+    end
+
+    def accounts
+      load_from_file(MainConsole::DATA_FILE) || []
     end
   end
 end

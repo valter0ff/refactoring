@@ -1,5 +1,5 @@
 class Account
-  include DatabaseLoader
+  ATTRIBUTES = %i[name age login password].freeze
 
   attr_reader :name, :age, :login, :password, :cards, :errors
 
@@ -10,13 +10,11 @@ class Account
 
   def create
     loop do
-      name_input
-      age_input
-      login_input
-      password_input
-      break if errors.compact.empty?
+      ATTRIBUTES.each(&method(:get_input))
+      errors.compact!
+      break if errors.empty?
 
-      errors.compact.map(&method(:puts))
+      errors.map(&method(:puts))
       errors.clear
     end
     self
@@ -24,31 +22,9 @@ class Account
 
   private
 
-  def name_input
-    puts I18n.t('ask_phrases.name')
-    @name = gets.chomp
-    errors << Validations.validate_name(@name)
-  end
-
-  def age_input
-    puts I18n.t('ask_phrases.age')
-    @age = gets.chomp.to_i
-    errors << Validations.validate_age(@age)
-  end
-
-  def login_input
-    puts I18n.t('ask_phrases.login')
-    @login = gets.chomp
-    errors << Validations.validate_login(@login, accounts)
-  end
-
-  def password_input
-    puts I18n.t('ask_phrases.password')
-    @password = gets.chomp
-    errors << Validations.validate_password(@password)
-  end
-
-  def accounts
-    load_from_file(MainConsole::DATA_FILE) || []
+  def get_input(attr)
+    puts I18n.t("ask_phrases.#{attr}")
+    input = instance_variable_set("@#{attr}", gets.chomp)
+    errors << Validations.public_send("validate_#{attr}", input)
   end
 end
