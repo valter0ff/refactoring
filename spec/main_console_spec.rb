@@ -170,7 +170,6 @@ RSpec.describe MainConsole do
         allow(fake_account).to receive_message_chain(:gets, :chomp).and_return(*all_inputs)
         allow(current_subject).to receive(:main_menu)
         allow(Account).to receive(:new).and_return(fake_account)
-        allow(current_subject).to receive(:accounts).and_return([])
       end
 
       context 'with name errors' do
@@ -212,7 +211,7 @@ RSpec.describe MainConsole do
           let(:error) { ACCOUNT_VALIDATION_PHRASES[:login][:exists] }
 
           before do
-            allow(fake_account).to receive(:accounts) { [instance_double('Account', login: error_input)] }
+            allow(Validations).to receive(:accounts) { [instance_double('Account', login: error_input)] }
           end
 
           it { expect { current_subject.create_account }.to output(/#{error}/).to_stdout }
@@ -361,7 +360,7 @@ RSpec.describe MainConsole do
       it 'calls specific methods on predefined commands' do
         allow(current_subject).to receive(:show_commands)
         current_subject.instance_variable_set(:@current_account, instance_double('Account', name: name))
-        allow(current_subject).to receive(:save_database)
+        allow(current_subject).to receive(:save_database_after)
         MONEY_COMMANDS.each do |command, klass_name|
           allow(klass_name).to receive(:new).and_return(double.as_null_object)
           expect(klass_name).to receive(:new).with(any_args)
@@ -378,7 +377,7 @@ RSpec.describe MainConsole do
       it 'calls destroy_account when destroy command' do
         allow(current_subject).to receive_message_chain(:gets, :chomp).and_return(destroy_command)
         allow(current_subject).to receive(:show_commands)
-        allow(current_subject).to receive(:save_database)
+        allow(current_subject).to receive(:save_database_after)
         expect(current_subject).to receive(:destroy_account)
         current_subject.main_menu
       end
