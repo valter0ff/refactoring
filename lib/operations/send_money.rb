@@ -3,7 +3,6 @@ class SendMoney < MoneyOperations
 
   CHOOSE_CARD = I18n.t('common.choose_card_for_sending').freeze
   INPUT_AMOUNT = I18n.t('common.withdraw_amount').freeze
-  CARD_NUMBER_LENGTH = 16
 
   def initialize(account)
     @accounts = load_from_file(MainConsole::DATA_FILE) || []
@@ -27,7 +26,7 @@ class SendMoney < MoneyOperations
   def set_recipient_card
     puts I18n.t('common.enter_recipient_card')
     answer = gets.chomp
-    return puts I18n.t('errors.incorrect_card_number') if answer.size != CARD_NUMBER_LENGTH
+    return puts I18n.t('errors.incorrect_card_number') if answer.size != BaseCard::CARD_NUMBER_LENGTH
 
     recipient_card = @accounts.flat_map(&:cards).find { |card| card.number == answer }
     return puts I18n.t('errors.no_such_card', card_number: answer) unless recipient_card

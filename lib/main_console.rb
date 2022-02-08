@@ -23,8 +23,7 @@ class MainConsole
 
   def create_account
     @current_account = Account.new.create
-    updated_accounts = accounts << current_account
-    store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
+    save_database_after(:create)
     main_menu
   end
 
@@ -58,15 +57,14 @@ class MainConsole
     when *CARD_COMMANDS then CardOperations.call(current_account, command)
     when *MONEY_COMMANDS.keys then MONEY_COMMANDS[command].call(current_account)
     end
-    save_database
+    save_database_after(:update)
   end
 
   def destroy_account
     puts I18n.t('common.destroy_account')
     return unless gets.chomp == I18n.t('commands.positive')
 
-    updated_accounts = accounts.delete_if { |acc| acc.login == current_account.login }
-    store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
+    save_database_after(:destroy)
   end
 
   private
@@ -92,9 +90,16 @@ class MainConsole
     load_from_file(DATA_FILE) || []
   end
 
-  def save_database
-    updated_accounts = accounts.collect { |acc| current_account if acc.login == current_account.login }
-    store_to_file(updated_accounts, DATA_FILE, DIR_NAME)
+  def save_database_after(action)
+    store_to_file(updated_accounts(action), DATA_FILE, DIR_NAME)
+  end
+
+  def updated_accounts(action)
+    case action
+    when :create then accounts << current_account
+    when :update then accounts.collect { |acc| current_account if acc.login == current_account.login }
+    when :destroy then accounts.delete_if { |acc| acc.login == current_account.login }
+    end
   end
 
   def show_commands
