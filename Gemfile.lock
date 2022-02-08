@@ -37,7 +37,7 @@ GEM
     rspec-expectations (3.10.2)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
-    rspec-mocks (3.10.2)
+    rspec-mocks (3.10.3)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.3)
@@ -73,7 +73,7 @@ GEM
     unicode-display_width (2.1.0)
 
 PLATFORMS
-  ruby
+  x86_64-linux
 
 DEPENDENCIES
   fasterer
@@ -87,4 +87,4 @@ DEPENDENCIES
   undercover
 
 BUNDLED WITH
-   1.17.1
+   2.2.13
