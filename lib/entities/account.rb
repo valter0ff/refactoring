@@ -22,9 +22,9 @@ class Account
 
   private
 
-  def get_input(attr)
-    puts I18n.t("ask_phrases.#{attr}")
-    input = instance_variable_set("@#{attr}", gets.chomp)
-    errors << Validations.public_send("validate_#{attr}", input)
+  def get_input(attribute_name)
+    puts I18n.t("ask_phrases.#{attribute_name}")
+    input = instance_variable_set("@#{attribute_name}", gets.chomp)
+    errors << Validations.public_send("validate_#{attribute_name}", input)
   end
 end

@@ -2,9 +2,10 @@ class BaseCard
   attr_reader :put, :withdraw, :send
 
   CARD_NUMBER_LENGTH = 16
+  ALLOWED_NUMBERS = (0..9).freeze
 
   def generate_number
-    Array.new(CARD_NUMBER_LENGTH) { rand(9) }.join
+    Array.new(CARD_NUMBER_LENGTH) { rand(ALLOWED_NUMBERS) }.join
   end
 
   def put_tax(amount)
