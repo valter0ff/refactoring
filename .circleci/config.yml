@@ -22,7 +22,9 @@ commands:
       - run:
           name: Install dependencies
           command: |
-            sudo apt-get install cmake
+            sudo apt-get --allow-releaseinfo-change-suite update
+            sudo apt-get install cmake pkg-config
+            gem install bundler:2.2.13
             bundle install
       - save_cache:
           key: *bundle_cache_full

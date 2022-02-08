@@ -1,7 +1,7 @@
 require 'yaml'
 require 'pry'
 
-class Account
+class MainConsole
   attr_accessor :login, :name, :card, :password, :file_path
 
   def initialize
@@ -60,7 +60,7 @@ class Account
       password = gets.chomp
 
       if accounts.map { |a| { login: a.login, password: a.password } }.include?({ login: login, password: password })
-        a = accounts.select { |a| login == a.login }.first
+        a = accounts.detect { |a| login == a.login }
         @current_account = a
         break
       else
@@ -345,7 +345,7 @@ class Account
     if a2.length > 15 && a2.length < 17
       all_cards = accounts.map(&:card).flatten
       if all_cards.select { |card| card[:number] == a2 }.any?
-        recipient_card = all_cards.select { |card| card[:number] == a2 }.first
+        recipient_card = all_cards.detect { |card| card[:number] == a2 }
       else
         puts "There is no card with number #{a2}\n"
         return
@@ -437,7 +437,7 @@ class Account
       @errors.push('Login must be shorter then 20 symbols')
     end
 
-    if accounts.map { |a| a.login }.include? @login
+    if accounts.map(&:login).include? @login
       @errors.push('Such account is already exists')
     end
   end
